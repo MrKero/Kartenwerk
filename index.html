@@ -130,11 +130,13 @@ body.nosb aside{display:none}
   .mobile-only{display:inline-block}
   main{display:contents}
   #toolbar{order:0;position:sticky;top:0;z-index:30;box-shadow:0 1px 0 var(--line)}
-  #wrap{order:1;height:58dvh;flex:none}
+  #wrap{order:1;height:auto;flex:none}
+  #map{height:auto;aspect-ratio:var(--ar,1200/760)}
   aside{order:2}
   body.nosb #wrap{height:calc(100dvh - var(--tbh,52px))}
-  body.pinmap section,body.pinmap #annoEd{scroll-margin-top:calc(var(--tbh,52px) + 46dvh + 8px)}
-  body.pinmap #wrap{position:sticky;top:var(--tbh,52px);height:46dvh;z-index:20;background:var(--bg);box-shadow:0 1px 0 var(--line)}
+  body.nosb #map{height:100%;aspect-ratio:auto}
+  body.pinmap section,body.pinmap #annoEd{scroll-margin-top:calc(var(--tbh,52px) + 64vw + 8px)}
+  body.pinmap #wrap{position:sticky;top:var(--tbh,52px);z-index:20;background:var(--bg);box-shadow:0 1px 0 var(--line)}
   #toolbar{padding:6px 8px;padding-top:max(6px,env(safe-area-inset-top));flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   #toolbar::-webkit-scrollbar{display:none}
   #toolbar button{white-space:nowrap;flex:none}
@@ -260,8 +262,8 @@ body.nosb aside{display:none}
 
   <section>
     <h2>Darstellung</h2>
-    <div class="row"><span class="lbl">Kartenstil</span><select id="stylePreset" class="grow"><option value="">Eigene Farben</option></select></div>
-    <div class="themes" id="themeGrid"></div>
+    <div class="row"><span class="lbl">Kartenstil</span><select id="stylePreset" class="grow"><option value="">Eigene Farben</option></select><button id="themeToggle" title="Alle Kartenstile mit Vorschau zeigen">Stile ▾</button></div>
+    <div class="themes" id="themeGrid" hidden></div>
     <div class="row"><span class="lbl">Ungefärbt</span><input type="color" id="cLand"><span class="lbl">Grenzen</span><input type="color" id="cBorder"></div>
     <div class="row"><span class="lbl">Hintergrund</span><input type="color" id="cOcean"><span class="lbl">Nachbarn</span><input type="color" id="cContext"></div>
     <div class="row"><span class="lbl">Grenzstärke</span><input type="range" id="borderW" min="0" max="2.5" step="0.1" class="grow"></div>
@@ -269,6 +271,7 @@ body.nosb aside{display:none}
     <label class="chk"><input type="checkbox" id="showDots"> Kleinstaaten als Punkte zeigen</label>
     <label class="chk"><input type="checkbox" id="showGrat"> Gradnetz anzeigen</label>
     <label class="chk"><input type="checkbox" id="transparent"> Hintergrund beim Export transparent (PNG/SVG)</label>
+    <label class="chk"><input type="checkbox" id="showFrame"> Bildrand anzeigen (nur auf dem Bildschirm, nicht im Export)</label>
     <div class="row"><button id="resetStyle" class="grow">Darstellung zurücksetzen</button></div>
   </section>
 
@@ -381,7 +384,8 @@ body.nosb aside{display:none}
 'use strict';
 const VERSION = '1.9.0';
 const LOGO = '<circle cx="32" cy="32" r="27" fill="#d7eafb"/><path d="M40.6,28.7L42.1,30.2L45,30.7L45.5,29.2L46.8,29.3L49.5,28.1L49.5,28.1L50,28.8L50.2,30.1L51.7,31.6L52.7,33L54.4,34.3L54.5,34.8L55.8,33.7L56.3,34L56,36.7L54.5,40.6L53.8,42.2L53.9,44.1L53.1,46.4L53.1,46.4L51.3,48.7L50.9,49.8L49.9,50.9L47.4,53.3L44.6,54.7L44.4,53.7L44.3,52.3L43.6,51L43.7,50.8L43.7,50.7L44.8,48.7L44.6,46.9L44.3,47L44.2,46.7L43.9,46.4L43.2,44.6L43.3,44.1L42.8,43.2L40.2,43L39.7,43.1L39.5,43.2L37.5,43.9L37.6,43.9L37.6,43.9L36.4,44L35.5,44.4L33.6,43.4L32.8,42.5L32,41.7L31.2,41.1L31.2,40.8L31.3,40.5L31.3,39.5L31.1,37.2L31.1,36.9L32.2,34.7L33.9,33.3L35.5,30.1L36.9,30.2ZM55.8,42.9L55.4,44.3L55.4,44.4L53.7,47.7L53.3,47.6L54.3,45.5L54.3,45.5Z" fill="#ffc20e" stroke="#fff" stroke-width="0.8" stroke-linejoin="round"/><path d="M52,22.2L50.6,20.8L48.8,19.7L50,21.5L51,22.7ZM56.2,20.1L56.3,20.2L57.9,24.5L58.5,26.7L58.7,28.2L57.9,26L57.4,24.8L56.5,24.3L55.8,25.3L54.5,26.3L52.9,26.1L52.8,26.2L53.2,26.7L54.4,27.7L54.5,27.7L54.6,27.8L54.9,26.1L55.1,26.2L55.2,26.5L56.1,26.8L56.3,30L56,30.6L56,30.6L54.8,33.9L53.9,32.9L52.4,31.5L50,28.8L50,28.7L50,28.8L49.5,28.1L49.5,28.1L49.5,27.9L49.4,27.2L49.3,26.4L49,25.9L47.3,26.7L45.7,25.8L47,23.7L48.9,22.7L48.1,22.2L46.7,21.1L46.1,19.9L44.1,20L42.3,18.8L41.8,18.4L41.4,17.6L41,17.2L40,15.5L40.7,15.1L40.8,15.1L40.8,15L40.8,15.1L41,15L41.1,14.9L41.4,14.7L38.7,11L35.9,8.1L32.8,6.2L29.7,5.3L29.4,5.2L32.3,5L33.7,5.1L34.9,5.2L37.1,5.5L39.4,6L39.4,6L40.3,6.3L41.2,6.6L42,6.9L42.9,7.3L43.8,7.7L44.6,8.1L45.4,8.6L46.2,9.1L47,9.6L47.8,10.1L48.6,10.7L49.3,11.3L50,11.9L50.7,12.5L51.4,13.2L52,13.9L52.6,14.6L53.2,15.3L53.8,16.1L54.3,16.8L54.9,17.6L55.3,18.4L55.8,19.3L56.2,20.1ZM41.6,11.2L40.7,11L40.4,11.8L40.2,12.1L40.2,12.1L40.2,12.1L38,13.7L37.9,13.8L37.8,13.9L37.7,13.9L37.6,13.9L37.6,13.9L33,15L33,15L31,15L30.6,15L30.4,14.9L30.3,14.9L30.2,14.9L30.1,14.9L30,14.9L26.8,14.1L26.8,14.1L26.7,14.1L24.7,13L24.7,12.9L24.7,12.9L24.6,12.9L24.6,12.9L23.6,11.8L23.6,11.7L23.5,11.6L23.4,11.3L23.3,11L23.2,10.4L23.4,9.3L26.3,6.8L26.4,6.8L26.4,6.7L26.6,6.7L29.5,5.9L29.6,5.9L23.9,8.8L23.8,9.1L23.7,9.3L23.6,9.4L23.6,9.5L23.4,10.3L23.5,10.7L23.5,10.8L23.6,11L23.6,11.2L23.7,11.5L23.9,11.8L24,11.9L24.6,12.6L24.6,12.6L24.7,12.6L24.7,12.6L24.7,12.6L24.7,12.7L24.8,12.8L26.4,13.7L26.6,13.8L26.8,13.9L30.2,14.7L30.4,14.7L30.9,14.8L35.4,13.1L39.9,12.1L39.3,11.5L40.1,11.8L40.5,10.8L40.5,10.5L40.6,10.4L40.6,10.2L40.6,10.2L40.5,9.6L40.5,9.6L38.1,8.5L38,7.6L37,6.6L36.6,6.5L36.5,6.4L36.3,6.4L36.1,6.3L36,6.3L35.9,6.2L35.9,6.2L35.7,6.2L35.6,6.2L34.2,5.9L29.9,5.8L33,5.7L32.6,5.5L37.3,7.2L41.7,10.4L40.8,10.4L40.8,10.5L41.7,10.8Z" fill="#e6194b" stroke="#fff" stroke-width="0.8" stroke-linejoin="round"/><path d="M14.3,52.4L13.1,51L11.9,49.1L10.9,46.9L10.1,45.8L10,45.8L9.4,45L8,41.5L7.5,39.3L7.8,37.7L8.2,35.6L8.4,35.1L10,35.1L10,35.1L12.3,37.3L13.1,38.6L14,40.3L15,40.9L14.8,42.1L15.9,41.8L17.8,44.5L20.6,46.1L22.6,47.4L22.7,48.9L21.3,50.1L21.4,51L21.4,51L20.7,52.7L18.6,52.7L18.8,53.4L18.1,54L16.4,53.1L17.6,54.4L16.3,53.9L17.4,54.7L17.4,54.7L16.6,54.2L15.8,53.6L15.1,53L14.4,52.4Z" fill="#f58231" stroke="#fff" stroke-width="0.8" stroke-linejoin="round"/><path d="M46.7,21.1L46.4,22L46,22.1L45.4,22.9L45.4,23.7L45.7,24.5L45.3,24.8L45.4,25.2L43.9,26.4L43.3,25.5L43,25.4L42.7,25.2L42.6,25.2L41,24.5L41.1,24.4L39.5,25.7L39.4,25.7L39.4,25.7L38.2,26.6L36.8,29.5L34.8,29.5L34.2,27.3L36.5,26.4L36.2,24L37.1,22.7L37.3,22.6L37.5,22.5L38.1,21.6L38.2,20.8L38.5,20.8L39.8,20.9L39.8,20.9L39.8,20.8L40.9,20.2L41.6,20L41.1,19.8L40.9,19.5L41.1,18.5L41.4,17.6L41.8,18.4L42.3,18.8L44.1,20L46.1,19.9ZM38.8,16.1L38.2,19L36.4,18.2L37.1,16.6L37.2,14.9L37.6,13.9L37.6,13.9L37.9,13.8L38,13.7L38.7,14L38.7,14.3L38.7,14.3L40,15.5L41,17.2L39.4,15.8L39,15.7ZM14.8,42.1L15,40.9L15.9,41.8Z" fill="#4363d8" stroke="#fff" stroke-width="0.8" stroke-linejoin="round"/><path d="M57,42.2L55.4,44.4L55.4,44.3L57,42.2L57,42.2Z" fill="#911eb4" stroke="#fff" stroke-width="0.8" stroke-linejoin="round"/><path d="M18.3,9.6L18,9.7L18,9.7L19.6,8.9L22.2,7.3L24.2,6.2L25.8,5.9L26.6,5.9L27,6.2L26.6,6.7L26.4,6.7L26.4,6.8L26.3,6.8L24.4,7.6L23.8,7.9L23.7,8L23.5,8.2L23.4,8.2L22.6,9.5L21.8,10.1L22.5,11.6L22.5,11.6L22.5,11.6L23.3,11L23.4,11.3L22.6,11.9L22.7,12L22.7,12.1L22.9,12.4L23.1,12.7L21.2,13.1L19.3,13.2L17.7,14.5L17.7,16.3L18.7,16.8L21,14.7L21.8,16.7L21.2,20.6L19.8,20.9L18.5,20.1L15.5,20.9L17,22L15.4,22.9L14.4,22.7L12.9,24.3L10.2,25.1L9,23.1L8,23.7L7.3,24.8L6.8,26.8L7.5,28.6L7.1,29.5L7.1,29.8L7.8,31.2L7.3,32.8L7.4,33.6L8.4,35.1L8.2,35.6L7.2,34.1L7,32.2L6.9,31.1L6.9,30.8L6.7,30.1L6.5,29.3L6.4,25.2L7.1,23L8.6,19.3L9.7,17.2L10.5,15.9L12.6,13.5L15.1,11.9L16.4,10.7ZM26.6,13.8L26.4,13.7L27.4,12.4L27.5,11.1L31.2,10.8L31.6,11.8L30.9,14.8L30.4,14.7L30.2,14.7L26.8,13.9ZM26.3,14.8L26.7,14.1L26.8,14.1L26.8,14.1L30,14.9L30.2,15.7L27.1,16.7L27.1,16.7L27,16.7L25.3,16.1L25.3,16.1L25.1,16ZM22.3,10.6L22.3,10.4L22.4,9.9L23.4,9.3L23.2,10.4L22.3,10.9ZM23.6,13.2L23.6,13.2L23.5,13.1L23.5,11.6L23.6,11.7L23.6,11.8L24.6,12.9L24.6,12.9L24.7,12.9L24.7,12.9L24.7,13L24.3,13.7L23.5,15.2L23.4,15.2L23,15L21.9,14L22.1,14.2L22.1,14.2Z" fill="#3cb44b" stroke="#fff" stroke-width="0.8" stroke-linejoin="round"/><circle cx="32" cy="32" r="27" fill="none" stroke="#1d2a4f" stroke-width="2.5"/>';
-const W = 1200, H = 760, FONT = 'Segoe UI, Helvetica, Arial, sans-serif';
+const W = 1200, FONT = 'Segoe UI, Helvetica, Arial, sans-serif';
+let H = 760; // Höhe passt sich der jeweiligen Karte an
 const PALETTE = ['#e6194b','#3cb44b','#ffe119','#4363d8','#f58231','#911eb4','#42d4f4','#f032e6','#bfef45','#fabed4',
                  '#469990','#dcbeff','#9a6324','#fffac8','#800000','#aaffc3','#808000','#ffd8b1','#000075','#a9a9a9'];
 const DEFAULT_STYLE = { land:'#d4d4d4', border:'#ffffff', borderW:0.6, ocean:'#ffffff', context:'#ececec',
@@ -536,7 +540,7 @@ const waterFC = {};
 const svg = d3.select('#map').attr('viewBox', `0 0 ${W} ${H}`).attr('font-family', FONT);
 const defs = svg.append('defs');
 const bg = svg.append('rect').attr('class', 'bgrect').attr('width', W).attr('height', H);
-svg.append('defs').append('clipPath').attr('id', 'vbclip').append('rect').attr('width', W).attr('height', H);
+const clipRect = svg.append('defs').append('clipPath').attr('id', 'vbclip').append('rect').attr('width', W).attr('height', H);
 const zoomG = svg.append('g').attr('clip-path', 'url(#vbclip)').append('g');
 const mapG = zoomG.append('g');
 const outlineG = zoomG.append('g').attr('pointer-events', 'none');
@@ -545,6 +549,9 @@ const hlPath = zoomG.append('path').attr('class', 'sel-ui').attr('fill', 'none')
 const labelsG = zoomG.append('g').attr('pointer-events', 'none');
 const citiesG = zoomG.append('g');
 const annoG = zoomG.append('g');
+// Rand des Bildausschnitts – nur zur Orientierung, wird beim Export entfernt (sel-ui)
+const frameRect = svg.append('rect').attr('class', 'sel-ui').attr('x', 1).attr('y', 1).attr('width', W - 2).attr('height', 758)
+  .attr('fill', 'none').attr('stroke', '#2f6fed').attr('stroke-width', 2).attr('stroke-dasharray', '10 6').attr('pointer-events', 'none').style('display', 'none');
 const titleG = svg.append('g');
 const legendG = svg.append('g').attr('id', 'legendG');
 const wmG = svg.append('g').attr('class', 'wm').attr('visibility', 'hidden');
@@ -575,8 +582,14 @@ function fitBox(proj, box, top){
   const [x0,y0,x1,y1] = box, pts = [];
   for (let x = x0; x <= x1; x += 2.5) { pts.push([x, y0], [x, y1]); }
   for (let y = y0; y <= y1; y += 2.5) { pts.push([x0, y], [x1, y]); }
-  proj.fitExtent([[20, top], [W - 20, H - 20]], { type:'MultiPoint', coordinates:pts });
+  const target = { type:'MultiPoint', coordinates:pts };
+  proj.fitExtent([[20, top], [W - 20, H - 20]], target);
+  noteFit(proj, target);
 }
+// unterer Rand des eigentlichen Kartenausschnitts (für die automatische Bildhöhe)
+let fitBottom = null;
+// fitExtent zentriert die Karte im Rahmen – gebraucht wird: Oberkante + tatsächliche Kartenhöhe + Randabstand
+function noteFit(proj, target, margin = 20){ try { const b = d3.geoPath(proj).bounds(target), top = V().title ? 64 : 20; if (isFinite(b[1][1])) fitBottom = top + (b[1][1] - b[0][1]) + margin; } catch(e) {} }
 function worldProjection(top){
   const p = S().projection;
   let proj;
@@ -585,12 +598,27 @@ function worldProjection(top){
   else if (p === 'orthographic') proj = d3.geoOrthographic().rotate([-10, -30]).clipAngle(90);
   else proj = d3.geoNaturalEarth1();
   if (p === 'mercator') fitBox(proj, [-179.9, -58, 179.9, 82], top);
-  else proj.fitExtent([[20, top], [W - 20, H - 20]], { type:'Sphere' });
+  else { proj.fitExtent([[20, top], [W - 20, H - 20]], { type:'Sphere' }); noteFit(proj, { type:'Sphere' }); }
   return proj;
 }
 
 // ---------- Karte zeichnen ----------
+// Bildhöhe an die Karte anpassen, damit oben/unten keine leere Fläche bleibt:
+// erst mit sehr hohem Rahmen zeichnen (Karte füllt dann die Breite), Höhe messen, dann endgültig zeichnen.
+function setCanvasHeight(h){
+  H = h; frameRect.attr('height', H - 2);
+  svg.attr('viewBox', `0 0 ${W} ${H}`); bg.attr('height', H); clipRect.attr('height', H);
+  zoom.translateExtent([[-W, -H], [2 * W, 2 * H]]);
+  document.documentElement.style.setProperty('--ar', `${W}/${H}`);
+}
 function render(){
+  setCanvasHeight(2400); fitBottom = null;
+  renderInner();
+  const h = fitBottom != null ? Math.round(Math.min(1000, Math.max(440, fitBottom + 4))) : 760;
+  setCanvasHeight(h);
+  renderInner();
+}
+function renderInner(){
   const view = VIEWS.find(v => v.id === store.view) || VIEWS[0];
   current.view = view;
   current.innerMesh = null; current.proj = null; current.path = null; current.topo = null;
@@ -608,7 +636,7 @@ function render(){
     const path = d3.geoPath(proj); current.path = path; current.proj = proj;
     const isWorld = view.id === 'world';
     if (isWorld) {
-      mapG.append('path').attr('d', path({type:'Sphere'})).attr('fill', 'none').attr('stroke', st.text).attr('stroke-opacity', 0.22).attr('stroke-width', 0.8).attr('vector-effect','non-scaling-stroke');
+      mapG.append('path').attr('class', 'sphere').attr('d', path({type:'Sphere'})).attr('fill', 'none').attr('stroke', st.text).attr('stroke-opacity', 0.22).attr('stroke-width', 0.8).attr('vector-effect','non-scaling-stroke');
     }
     if (st.showGrat) {
       mapG.append('path').attr('d', path(d3.geoGraticule10())).attr('fill','none').attr('stroke', st.text).attr('stroke-opacity', 0.14).attr('stroke-width',0.5).attr('vector-effect','non-scaling-stroke');
@@ -629,7 +657,7 @@ function render(){
     let proj;
     if (view.albers) proj = d3.geoAlbersUsa();
     else { const c = d3.geoCentroid(fc); proj = d3.geoAzimuthalEqualArea().rotate([-c[0], -c[1]]).clipAngle(150); }
-    proj.fitExtent([[30, top], [W - 30, H - 30]], fc);
+    proj.fitExtent([[30, top], [W - 30, H - 30]], fc); noteFit(proj, fc, 30);
     const path = d3.geoPath(proj); current.path = path; current.proj = proj;
     if (st.showContext && !view.albers) {
       worldFeatures.forEach(f => { if (f.properties.k === view.own) return; const d = path(f); if (d) feats.push({ k:f.properties.k, n:f.properties.n, d, inter:false }); });
@@ -713,7 +741,9 @@ function updatePatterns(){
 function paintMap(){
   const st = S();
   mapG.selectAll('path.sw').attr('fill', st.water);
-  svg.style('background', st.ocean);
+  // mit sichtbarem Bildrand: Fläche außerhalb des Bildes wie die Seite einfärben, damit die Grenze klar ist
+  svg.style('background', st.showFrame ? 'var(--bg)' : st.ocean);
+  frameRect.style('display', st.showFrame ? null : 'none').attr('stroke', st.text).attr('stroke-opacity', 0.55).raise();
   mapG.selectAll('path.mesh').attr('stroke', st.border).attr('stroke-width', Math.max(1.2, st.borderW * 2.6));
   mapG.selectAll('.f:not(.line)')
     .attr('fill', d => d.inter ? (fillOf(d.k) || (d.base ? st[d.base] : st.land)) : st.context)
@@ -1361,7 +1391,7 @@ function bindOptions(){
   $('legendShape').value = vs.legendShape || 'square'; $('legendFrame').checked = vs.legendFrame !== false;
   $('legendSize').value = vs.legendSize || '1'; $('legendTitle').value = vs.legendTitle || '';
   $('cLand').value = st.land; $('cBorder').value = st.border; $('cOcean').value = st.ocean; $('cContext').value = st.context;
-  $('borderW').value = st.borderW; $('showContext').checked = st.showContext; $('showDots').checked = st.showDots; $('transparent').checked = !!st.transparent; $('showGrat').checked = st.showGrat;
+  $('borderW').value = st.borderW; $('showContext').checked = st.showContext; $('showDots').checked = st.showDots; $('transparent').checked = !!st.transparent; $('showFrame').checked = !!st.showFrame; $('showGrat').checked = st.showGrat;
 }
 function curView(){ return VIEWS.find(v => v.id === store.view) || VIEWS[0]; }
 function buildViewSel(){
@@ -1385,14 +1415,17 @@ $('legendTitle').addEventListener('input', e => { V().legendTitle = e.target.val
 [['cLand','land'],['cBorder','border'],['cOcean','ocean'],['cContext','context']].forEach(([id, key]) =>
   $(id).addEventListener('input', e => { S()[key] = e.target.value; save(); bg.attr('fill', S().ocean); paint(); syncStylePreset(); }));
 $('borderW').addEventListener('input', e => { S().borderW = +e.target.value; save(); paint(); syncStylePreset(); });
-[['showContext','showContext'],['showDots','showDots'],['showGrat','showGrat'],['transparent','transparent']].forEach(([id, key]) =>
+[['showContext','showContext'],['showDots','showDots'],['showGrat','showGrat'],['transparent','transparent'],['showFrame','showFrame']].forEach(([id, key]) =>
   $(id).addEventListener('change', e => { S()[key] = e.target.checked; save(); render(); }));
 $('labelMode').onchange = e => { V().labelMode = e.target.value; save(); drawLabels(); updateVisibility(); };
 $('labelSize').addEventListener('input', e => { S().labelSize = +e.target.value; save(); drawLabels(); drawCities(); });
 ['caps','regcaps','cityNames'].forEach(id => $(id).addEventListener('change', e => { S()[id] = e.target.checked; save(); drawCities(); updateVisibility(); }));
 $('bigCities').onchange = e => { S().bigCities = +e.target.value; save(); drawCities(); updateVisibility(); };
 Object.keys(STYLE_PRESETS).forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; $('stylePreset').appendChild(o); });
-// Vorschau-Kacheln für alle Kartenstile
+// Vorschau-Kacheln für alle Kartenstile (ein-/ausklappbar)
+function setThemesOpen(open){ $('themeGrid').hidden = !open; $('themeToggle').textContent = open ? 'Stile ▴' : 'Stile ▾'; $('themeToggle').classList.toggle('on', open); try { localStorage.setItem('kartenwerk-themes', open ? '1' : '0'); } catch(e) {} }
+$('themeToggle').onclick = () => setThemesOpen($('themeGrid').hidden);
+try { setThemesOpen(localStorage.getItem('kartenwerk-themes') === '1'); } catch(e) { setThemesOpen(false); }
 Object.entries(STYLE_PRESETS).forEach(([n, p]) => {
   const b = document.createElement('button'); b.dataset.n = n; b.title = n;
   b.innerHTML = `<svg viewBox="0 0 60 34"><rect width="60" height="34" fill="${p.ocean}"/>
@@ -1674,9 +1707,9 @@ function buildCustom(def, top, feats){
   else if (def.kind === 'adm1') { const t = EXTRA.adm1[def.country].topo; inter = topojson.feature(t, t.objects.r).features; ownKeys = new Set([def.country]); }
   else inter = def.geo.features;
   let proj;
-  if (def.planar) proj = d3.geoIdentity().reflectY(true).fitExtent(ext, def.geo);
+  if (def.planar) { proj = d3.geoIdentity().reflectY(true).fitExtent(ext, def.geo); noteFit(proj, def.geo, 30); }
   else { const target = fitTarget(inter), c = d3.geoCentroid(target);
-    proj = d3.geoAzimuthalEqualArea().rotate([-c[0], -c[1]]).clipAngle(150).fitExtent(ext, target); }
+    proj = d3.geoAzimuthalEqualArea().rotate([-c[0], -c[1]]).clipAngle(150).fitExtent(ext, target); noteFit(proj, target, 30); }
   const path = d3.geoPath(proj); current.path = path; current.proj = proj;
   if (!def.planar && st.showContext) {
     worldFeatures.forEach(f => { if (ownKeys.has(f.properties.k)) return; const d = path(f); if (d) feats.push({ k:f.properties.k, n:f.properties.n, d, inter:false }); });

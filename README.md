@@ -4,6 +4,8 @@
 
 Kartenwerk ist ein Werkzeug, um Länder und Regionen nach eigenen Gruppen einzufärben – für Schule, Studium, Präsentationen, Geschichte oder einfach aus Spaß. Alles läuft lokal im Browser: keine Anmeldung, kein Server, keine Datenübertragung.
 
+### 👉 [Kartenwerk direkt öffnen](https://mrkero.github.io/Kartenwerk/)
+
 ![Kartenwerk – Weltkarte mit EU, G7 und BRICS](screenshot.png)
 
 ## Funktionen
@@ -34,9 +36,9 @@ Kartenwerk ist ein Werkzeug, um Länder und Regionen nach eigenen Gruppen einzuf
 
 ## Nutzung
 
-- **Online:** Die Seite über GitHub Pages öffnen.
+- **Online:** [mrkero.github.io/Kartenwerk](https://mrkero.github.io/Kartenwerk/) öffnen.
 - **Offline am PC:** `index.html` herunterladen und im Browser öffnen.
-- **Als App auf dem Handy:** Die Seite einmal im Browser öffnen und „Zum Home-Bildschirm“ wählen – danach startet Kartenwerk wie eine App und funktioniert auch ohne Internet.
+- **Als App auf dem Handy:** [mrkero.github.io/Kartenwerk](https://mrkero.github.io/Kartenwerk/) einmal im Browser öffnen und „Zum Home-Bildschirm“ wählen – danach startet Kartenwerk wie eine App und funktioniert auch ohne Internet.
 
 Deine Karten werden nur im Browser deines Geräts gespeichert. Für eine Sicherung „Konfiguration speichern“ nutzen.
 

@@ -39,6 +39,9 @@ button.pri:hover{filter:brightness(1.07)}
 button.on{background:var(--accsoft);border-color:var(--acc);color:var(--acc)}
 .row{display:flex;gap:8px;align-items:center}
 .row+.row{margin-top:8px}
+section > * + *, .stack > * + *, .dlg .body > * + *{margin-top:8px}
+section > h2 + *, section > h2 + :is([hidden],[style*="display: none"]) + *{margin-top:0}
+[hidden]{display:none!important}
 .grow{flex:1}
 .btns{display:flex;flex-wrap:wrap;gap:6px}
 .palette{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-top:8px}
@@ -59,7 +62,8 @@ button.on{background:var(--accsoft);border-color:var(--acc);color:var(--acc)}
 .list div{display:flex;align-items:center;gap:8px;padding:5px 9px;cursor:pointer;border-bottom:1px solid #f1f2f5}
 .list div:hover{background:#f5f7fb}
 .dot{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.15);flex:none}
-label.chk{display:flex;gap:8px;align-items:center;cursor:pointer;margin-top:6px}
+aside a{color:var(--acc)}
+label.chk{display:flex;gap:8px;align-items:center;cursor:pointer;margin-top:8px}
 .lbl{font-size:12px;color:var(--muted);min-width:96px}
 #toolbar{display:flex;gap:6px;align-items:center;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
 #toolbar .sep{width:1px;height:22px;background:var(--line);margin:0 4px}
@@ -87,7 +91,7 @@ dialog::backdrop{background:rgba(15,20,30,.45)}
 .chk-list label{display:flex;gap:8px;align-items:center;padding:4px 9px;border-bottom:1px solid #f1f2f5;cursor:pointer}
 .mylist div{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f1f2f5}
 #map.pip .i{cursor:copy!important}
-#mcBox{display:none;border:1px solid #f0d49a;background:#fff8e8;border-radius:9px;padding:9px;margin-bottom:12px}
+#mcBox{display:none;border:1px solid #f0d49a;background:#fff8e8;border-radius:9px;padding:9px}
 [data-theme=dark] #mcBox{background:#2a2312;border-color:#5a4513}
 #mcBox h3{font-size:13px;margin:0 0 4px;display:flex;justify-content:space-between;align-items:center}
 #mcList div{display:flex;align-items:center;gap:8px;padding:5px 4px;border-top:1px solid rgba(0,0,0,.06);cursor:pointer;border-radius:6px}
@@ -136,7 +140,12 @@ body.nosb aside{display:none}
   aside{width:100%;border-right:none;border-top:1px solid var(--line)}
 }
 .hdr h1{display:flex;align-items:center;gap:8px}
-.logo{width:26px;height:26px;flex:none;display:block}
+.logo{width:26px;height:26px;flex:none;display:block;cursor:pointer}
+#logoShow{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(10,14,22,.45);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);cursor:pointer;animation:lsFade 2.8s ease forwards}
+#logoShow svg{width:min(62vmin,420px);height:min(62vmin,420px);filter:drop-shadow(0 18px 40px rgba(0,0,0,.35));animation:lsSpin 2.8s cubic-bezier(.45,.05,.3,1) forwards}
+@keyframes lsFade{0%{opacity:0}10%{opacity:1}85%{opacity:1}100%{opacity:0}}
+@keyframes lsSpin{0%{transform:scale(.15) rotate(-90deg)}18%{transform:scale(1.06) rotate(40deg)}26%{transform:scale(1) rotate(80deg)}82%{transform:scale(1) rotate(720deg)}100%{transform:scale(.4) rotate(800deg)}}
+@media (prefers-reduced-motion:reduce){#logoShow svg{animation:none}}
 .logo.spin{animation:logospin .9s cubic-bezier(.3,1.4,.5,1)}
 @keyframes logospin{from{transform:rotate(0) scale(1)}50%{transform:rotate(200deg) scale(1.25)}to{transform:rotate(360deg) scale(1)}}
 .credit{border-top:1px solid var(--line);margin-top:6px;padding:16px 0 4px;text-align:center;font-size:13px;color:var(--muted)}
@@ -176,10 +185,10 @@ body.nosb aside{display:none}
     <h2>Gruppen / Legende <button id="addGroup" class="pri" title="Neue Gruppe">+ Gruppe</button></h2>
     <div id="groups"></div>
     <div class="small">Aktive Gruppe wählen, dann Länder anklicken. Erneuter Klick oder Rechtsklick entfernt die Farbe.</div>
-    <div class="row" style="margin-top:8px"><span class="lbl">Farbset</span><select id="palSet" class="grow"></select></div>
+    <div class="row"><span class="lbl">Farbset</span><select id="palSet" class="grow"></select></div>
     <div class="palette" id="palette"></div>
-    <button id="palApply" style="width:100%;margin-top:6px">Farbset auf alle Gruppen anwenden</button>
-    <div class="row" style="margin-top:10px">
+    <button id="palApply" style="width:100%">Farbset auf alle Gruppen anwenden</button>
+    <div class="row">
       <button id="fillRest" class="grow" title="Alle noch ungefärbten Gebiete der aktiven Gruppe zuweisen">Rest füllen</button>
       <button id="clearGroup" class="grow">Gruppe leeren</button>
     </div>
@@ -201,7 +210,7 @@ body.nosb aside{display:none}
   <section id="presetSec">
     <h2>Vorlagen (→ aktive Gruppe)</h2>
     <div class="btns" id="presets"></div>
-    <div class="small" style="margin:10px 0 6px;font-weight:600">Historische Reiche <span style="font-weight:400">(grob, nach heutigen Staaten)</span></div>
+    <div class="small" style="margin-top:14px;font-weight:600">Historische Reiche <span style="font-weight:400">(grob, nach heutigen Staaten)</span></div>
     <div class="btns" id="presetsHist"></div>
   </section>
 
@@ -215,24 +224,29 @@ body.nosb aside{display:none}
         <option value="custom">frei (mit Maus ziehen)</option>
         <option value="none">ausblenden</option>
       </select></div>
+    <div class="stack" id="legendOpts">
     <div class="row"><span class="lbl">Größe</span>
       <select id="legendSize" class="grow"><option value="0.8">klein</option><option value="1">mittel</option><option value="1.3">groß</option><option value="1.7">sehr groß</option></select></div>
-    <input type="text" id="legendTitle" placeholder="Legendentitel (optional)" style="margin-top:8px">
-    <div class="small" style="margin-top:6px">Tipp: Legende auf der Karte einfach an die gewünschte Stelle ziehen.</div>
+    <div class="row"><span class="lbl">Symbol</span>
+      <select id="legendShape" class="grow"><option value="square">Quadrat</option><option value="circle">Kreis</option></select>
+      <label class="chk" style="margin:0;white-space:nowrap"><input type="checkbox" id="legendFrame"> Rahmen</label></div>
+    <input type="text" id="legendTitle" placeholder="Legendentitel (optional)">
     <label class="chk"><input type="checkbox" id="showCount"> Anzahl in Legende anzeigen</label>
+    <div class="small">Tipp: Legende auf der Karte einfach an die gewünschte Stelle ziehen.</div>
+    </div>
   </section>
 
   <section>
     <h2>Beschriftungen &amp; Orte</h2>
     <div class="row"><span class="lbl">Namen</span>
       <select id="labelMode" class="grow"><option value="none">keine</option><option value="colored">nur gefärbte Gebiete</option><option value="all">alle (soweit Platz)</option><option value="manual">nur einzeln gewählte</option></select></div>
-    <div class="row"><span class="lbl">Schriftgröße</span><input type="range" id="labelSize" min="7" max="22" step="1" class="grow"></div>
+    <div class="row" id="labelSizeRow"><span class="lbl">Schriftgröße</span><input type="range" id="labelSize" min="7" max="22" step="1" class="grow"></div>
     <label class="chk"><input type="checkbox" id="caps"> Hauptstädte</label>
     <label class="chk"><input type="checkbox" id="regcaps"> Regionshauptstädte (Bundesländer, Provinzen …)</label>
     <div class="row"><span class="lbl">Großstädte</span>
       <select id="bigCities" class="grow"><option value="0">aus</option><option value="10000000">ab 10 Mio.</option><option value="5000000">ab 5 Mio.</option><option value="1000000">ab 1 Mio.</option><option value="500000">ab 500.000</option></select></div>
-    <label class="chk"><input type="checkbox" id="cityNames"> Städtenamen anzeigen</label>
-    <div class="small" style="margin-top:8px">Werkzeuge oben: <b>🏷 Name</b> blendet einzelne Namen ein/aus, <b>T Text</b>, <b>↗ Pfeil</b> und <b>📍 Ort</b> setzen Anmerkungen. Anmerkungen lassen sich verschieben; anklicken zum Bearbeiten.</div>
+    <label class="chk" id="cityNamesRow"><input type="checkbox" id="cityNames"> Städtenamen anzeigen</label>
+    <div class="small">Werkzeuge oben: <b>🏷 Name</b> blendet einzelne Namen ein/aus, <b>T Text</b>, <b>↗ Pfeil</b> und <b>📍 Ort</b> setzen Anmerkungen. Anmerkungen lassen sich verschieben; anklicken zum Bearbeiten.</div>
     <div id="annoEd">
       <div class="row"><b class="grow" id="aeType">Anmerkung</b><button id="aeDel" style="color:var(--danger)">Löschen</button></div>
       <div class="row" id="aeTextRow"><input type="text" id="aeText" placeholder="Text"></div>
@@ -242,14 +256,14 @@ body.nosb aside{display:none}
 
   <section>
     <h2>Darstellung</h2>
-    <div class="row"><span class="lbl">Kartenstil</span><select id="stylePreset" class="grow"><option value="">– Vorlage wählen –</option></select></div>
+    <div class="row"><span class="lbl">Kartenstil</span><select id="stylePreset" class="grow"><option value="">Eigene Farben</option></select></div>
     <div class="row"><span class="lbl">Ungefärbt</span><input type="color" id="cLand"><span class="lbl">Grenzen</span><input type="color" id="cBorder"></div>
     <div class="row"><span class="lbl">Hintergrund</span><input type="color" id="cOcean"><span class="lbl">Nachbarn</span><input type="color" id="cContext"></div>
     <div class="row"><span class="lbl">Grenzstärke</span><input type="range" id="borderW" min="0" max="2.5" step="0.1" class="grow"></div>
-    <label class="chk"><input type="checkbox" id="showContext"> Nachbarländer anzeigen (Regionalkarten)</label>
+    <label class="chk" id="ctxRow"><input type="checkbox" id="showContext"> Nachbarländer anzeigen</label>
     <label class="chk"><input type="checkbox" id="showDots"> Kleinstaaten als Punkte zeigen</label>
     <label class="chk"><input type="checkbox" id="showGrat"> Gradnetz anzeigen</label>
-    <div class="row" style="margin-top:10px"><button id="resetStyle" class="grow">Darstellung zurücksetzen</button></div>
+    <div class="row"><button id="resetStyle" class="grow">Darstellung zurücksetzen</button></div>
   </section>
 
   <section>
@@ -261,7 +275,7 @@ body.nosb aside{display:none}
       <button id="resetMap" style="color:var(--danger)">Karte leeren</button>
     </div>
     <input type="file" id="fileIn" accept=".json,.txt,application/json,text/plain" hidden>
-    <div class="small" style="margin-top:8px">Alles wird automatisch im Browser gespeichert. Quellen: Kartendaten <a href="https://www.naturalearthdata.com" target="_blank" rel="noopener">Natural Earth</a> (gemeinfrei); Deutschland © GeoBasis-DE / BKG 2020, <a href="https://www.govdata.de/dl-de/by-2-0" target="_blank" rel="noopener">dl-de/by-2-0</a>, Daten verändert (vereinfacht, Kreise Stand 2021); USA: US Census Bureau über us-atlas; Ländernamen: <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a> (<a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL 1.0</a>); Bibliotheken: D3, topojson-client (ISC).</div>
+    <div class="small">Alles wird automatisch im Browser gespeichert. Quellen: Kartendaten <a href="https://www.naturalearthdata.com" target="_blank" rel="noopener">Natural Earth</a> (gemeinfrei); Deutschland © GeoBasis-DE / BKG 2020, <a href="https://www.govdata.de/dl-de/by-2-0" target="_blank" rel="noopener">dl-de/by-2-0</a>, Daten verändert (vereinfacht, Kreise Stand 2021); USA: US Census Bureau über us-atlas; Ländernamen: <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">mledoze/countries</a> (<a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL 1.0</a>); Bibliotheken: D3, topojson-client (ISC).</div>
   </section>
   <div class="credit">
     <div class="made">mit <span class="heart">❤</span> gemacht von <button id="kerem" title="Hallo!">Kerem</button></div>
@@ -359,7 +373,7 @@ body.nosb aside{display:none}
 <script>
 (() => {
 'use strict';
-const VERSION = '1.8.0';
+const VERSION = '1.9.0';
 const LOGO = '<circle cx="32" cy="32" r="27" fill="#d7eafb"/><path d="M40.6,28.7L42.1,30.2L45,30.7L45.5,29.2L46.8,29.3L49.5,28.1L49.5,28.1L50,28.8L50.2,30.1L51.7,31.6L52.7,33L54.4,34.3L54.5,34.8L55.8,33.7L56.3,34L56,36.7L54.5,40.6L53.8,42.2L53.9,44.1L53.1,46.4L53.1,46.4L51.3,48.7L50.9,49.8L49.9,50.9L47.4,53.3L44.6,54.7L44.4,53.7L44.3,52.3L43.6,51L43.7,50.8L43.7,50.7L44.8,48.7L44.6,46.9L44.3,47L44.2,46.7L43.9,46.4L43.2,44.6L43.3,44.1L42.8,43.2L40.2,43L39.7,43.1L39.5,43.2L37.5,43.9L37.6,43.9L37.6,43.9L36.4,44L35.5,44.4L33.6,43.4L32.8,42.5L32,41.7L31.2,41.1L31.2,40.8L31.3,40.5L31.3,39.5L31.1,37.2L31.1,36.9L32.2,34.7L33.9,33.3L35.5,30.1L36.9,30.2ZM55.8,42.9L55.4,44.3L55.4,44.4L53.7,47.7L53.3,47.6L54.3,45.5L54.3,45.5Z" fill="#ffc20e" stroke="#fff" stroke-width="0.8" stroke-linejoin="round"/><path d="M52,22.2L50.6,20.8L48.8,19.7L50,21.5L51,22.7ZM56.2,20.1L56.3,20.2L57.9,24.5L58.5,26.7L58.7,28.2L57.9,26L57.4,24.8L56.5,24.3L55.8,25.3L54.5,26.3L52.9,26.1L52.8,26.2L53.2,26.7L54.4,27.7L54.5,27.7L54.6,27.8L54.9,26.1L55.1,26.2L55.2,26.5L56.1,26.8L56.3,30L56,30.6L56,30.6L54.8,33.9L53.9,32.9L52.4,31.5L50,28.8L50,28.7L50,28.8L49.5,28.1L49.5,28.1L49.5,27.9L49.4,27.2L49.3,26.4L49,25.9L47.3,26.7L45.7,25.8L47,23.7L48.9,22.7L48.1,22.2L46.7,21.1L46.1,19.9L44.1,20L42.3,18.8L41.8,18.4L41.4,17.6L41,17.2L40,15.5L40.7,15.1L40.8,15.1L40.8,15L40.8,15.1L41,15L41.1,14.9L41.4,14.7L38.7,11L35.9,8.1L32.8,6.2L29.7,5.3L29.4,5.2L32.3,5L33.7,5.1L34.9,5.2L37.1,5.5L39.4,6L39.4,6L40.3,6.3L41.2,6.6L42,6.9L42.9,7.3L43.8,7.7L44.6,8.1L45.4,8.6L46.2,9.1L47,9.6L47.8,10.1L48.6,10.7L49.3,11.3L50,11.9L50.7,12.5L51.4,13.2L52,13.9L52.6,14.6L53.2,15.3L53.8,16.1L54.3,16.8L54.9,17.6L55.3,18.4L55.8,19.3L56.2,20.1ZM41.6,11.2L40.7,11L40.4,11.8L40.2,12.1L40.2,12.1L40.2,12.1L38,13.7L37.9,13.8L37.8,13.9L37.7,13.9L37.6,13.9L37.6,13.9L33,15L33,15L31,15L30.6,15L30.4,14.9L30.3,14.9L30.2,14.9L30.1,14.9L30,14.9L26.8,14.1L26.8,14.1L26.7,14.1L24.7,13L24.7,12.9L24.7,12.9L24.6,12.9L24.6,12.9L23.6,11.8L23.6,11.7L23.5,11.6L23.4,11.3L23.3,11L23.2,10.4L23.4,9.3L26.3,6.8L26.4,6.8L26.4,6.7L26.6,6.7L29.5,5.9L29.6,5.9L23.9,8.8L23.8,9.1L23.7,9.3L23.6,9.4L23.6,9.5L23.4,10.3L23.5,10.7L23.5,10.8L23.6,11L23.6,11.2L23.7,11.5L23.9,11.8L24,11.9L24.6,12.6L24.6,12.6L24.7,12.6L24.7,12.6L24.7,12.6L24.7,12.7L24.8,12.8L26.4,13.7L26.6,13.8L26.8,13.9L30.2,14.7L30.4,14.7L30.9,14.8L35.4,13.1L39.9,12.1L39.3,11.5L40.1,11.8L40.5,10.8L40.5,10.5L40.6,10.4L40.6,10.2L40.6,10.2L40.5,9.6L40.5,9.6L38.1,8.5L38,7.6L37,6.6L36.6,6.5L36.5,6.4L36.3,6.4L36.1,6.3L36,6.3L35.9,6.2L35.9,6.2L35.7,6.2L35.6,6.2L34.2,5.9L29.9,5.8L33,5.7L32.6,5.5L37.3,7.2L41.7,10.4L40.8,10.4L40.8,10.5L41.7,10.8Z" fill="#e6194b" stroke="#fff" stroke-width="0.8" stroke-linejoin="round"/><path d="M14.3,52.4L13.1,51L11.9,49.1L10.9,46.9L10.1,45.8L10,45.8L9.4,45L8,41.5L7.5,39.3L7.8,37.7L8.2,35.6L8.4,35.1L10,35.1L10,35.1L12.3,37.3L13.1,38.6L14,40.3L15,40.9L14.8,42.1L15.9,41.8L17.8,44.5L20.6,46.1L22.6,47.4L22.7,48.9L21.3,50.1L21.4,51L21.4,51L20.7,52.7L18.6,52.7L18.8,53.4L18.1,54L16.4,53.1L17.6,54.4L16.3,53.9L17.4,54.7L17.4,54.7L16.6,54.2L15.8,53.6L15.1,53L14.4,52.4Z" fill="#f58231" stroke="#fff" stroke-width="0.8" stroke-linejoin="round"/><path d="M46.7,21.1L46.4,22L46,22.1L45.4,22.9L45.4,23.7L45.7,24.5L45.3,24.8L45.4,25.2L43.9,26.4L43.3,25.5L43,25.4L42.7,25.2L42.6,25.2L41,24.5L41.1,24.4L39.5,25.7L39.4,25.7L39.4,25.7L38.2,26.6L36.8,29.5L34.8,29.5L34.2,27.3L36.5,26.4L36.2,24L37.1,22.7L37.3,22.6L37.5,22.5L38.1,21.6L38.2,20.8L38.5,20.8L39.8,20.9L39.8,20.9L39.8,20.8L40.9,20.2L41.6,20L41.1,19.8L40.9,19.5L41.1,18.5L41.4,17.6L41.8,18.4L42.3,18.8L44.1,20L46.1,19.9ZM38.8,16.1L38.2,19L36.4,18.2L37.1,16.6L37.2,14.9L37.6,13.9L37.6,13.9L37.9,13.8L38,13.7L38.7,14L38.7,14.3L38.7,14.3L40,15.5L41,17.2L39.4,15.8L39,15.7ZM14.8,42.1L15,40.9L15.9,41.8Z" fill="#4363d8" stroke="#fff" stroke-width="0.8" stroke-linejoin="round"/><path d="M57,42.2L55.4,44.4L55.4,44.3L57,42.2L57,42.2Z" fill="#911eb4" stroke="#fff" stroke-width="0.8" stroke-linejoin="round"/><path d="M18.3,9.6L18,9.7L18,9.7L19.6,8.9L22.2,7.3L24.2,6.2L25.8,5.9L26.6,5.9L27,6.2L26.6,6.7L26.4,6.7L26.4,6.8L26.3,6.8L24.4,7.6L23.8,7.9L23.7,8L23.5,8.2L23.4,8.2L22.6,9.5L21.8,10.1L22.5,11.6L22.5,11.6L22.5,11.6L23.3,11L23.4,11.3L22.6,11.9L22.7,12L22.7,12.1L22.9,12.4L23.1,12.7L21.2,13.1L19.3,13.2L17.7,14.5L17.7,16.3L18.7,16.8L21,14.7L21.8,16.7L21.2,20.6L19.8,20.9L18.5,20.1L15.5,20.9L17,22L15.4,22.9L14.4,22.7L12.9,24.3L10.2,25.1L9,23.1L8,23.7L7.3,24.8L6.8,26.8L7.5,28.6L7.1,29.5L7.1,29.8L7.8,31.2L7.3,32.8L7.4,33.6L8.4,35.1L8.2,35.6L7.2,34.1L7,32.2L6.9,31.1L6.9,30.8L6.7,30.1L6.5,29.3L6.4,25.2L7.1,23L8.6,19.3L9.7,17.2L10.5,15.9L12.6,13.5L15.1,11.9L16.4,10.7ZM26.6,13.8L26.4,13.7L27.4,12.4L27.5,11.1L31.2,10.8L31.6,11.8L30.9,14.8L30.4,14.7L30.2,14.7L26.8,13.9ZM26.3,14.8L26.7,14.1L26.8,14.1L26.8,14.1L30,14.9L30.2,15.7L27.1,16.7L27.1,16.7L27,16.7L25.3,16.1L25.3,16.1L25.1,16ZM22.3,10.6L22.3,10.4L22.4,9.9L23.4,9.3L23.2,10.4L22.3,10.9ZM23.6,13.2L23.6,13.2L23.5,13.1L23.5,11.6L23.6,11.7L23.6,11.8L24.6,12.9L24.6,12.9L24.7,12.9L24.7,12.9L24.7,13L24.3,13.7L23.5,15.2L23.4,15.2L23,15L21.9,14L22.1,14.2L22.1,14.2Z" fill="#3cb44b" stroke="#fff" stroke-width="0.8" stroke-linejoin="round"/><circle cx="32" cy="32" r="27" fill="none" stroke="#1d2a4f" stroke-width="2.5"/>';
 const W = 1200, H = 760, FONT = 'Segoe UI, Helvetica, Arial, sans-serif';
 const PALETTE = ['#e6194b','#3cb44b','#ffe119','#4363d8','#f58231','#911eb4','#42d4f4','#f032e6','#bfef45','#fabed4',
@@ -373,6 +387,7 @@ const STYLE_PRESETS = {
   'Vintage':       { land:'#e8dcbf', border:'#8b7355', borderW:0.5, ocean:'#b9cbc3', context:'#efe6cf', text:'#4a3b2a', legendBg:'#f4ecd8', halo:'#f4ecd8', water:'#b9cbc3', river:'#6f8f86' },
   'Druck s/w':     { land:'#ffffff', border:'#111111', borderW:0.6, ocean:'#ffffff', context:'#f0f0f0', text:'#000000', legendBg:'#ffffff', halo:'#ffffff', water:'#e9e9e9', river:'#555555' },
   'Nacht':         { land:'#3a4352', border:'#161b24', borderW:0.6, ocean:'#141922', context:'#252b36', text:'#e8ecf3', legendBg:'#1b212b', halo:'#141922', water:'#1c3550', river:'#4a8fd6' },
+  'Kontrast dunkel': { land:'#d3dde0', border:'#262626', borderW:0.5, ocean:'#262626', context:'#5d676b', text:'#eef2f3', legendBg:'#262626', halo:'#262626', water:'#3a4651', river:'#8fc1e3' },
   'Pastell-Atlas': { land:'#f1efe6', border:'#ffffff', borderW:0.9, ocean:'#d5e8f0', context:'#e7e5dc', text:'#2d3a4a', legendBg:'#ffffff', halo:'#ffffff', water:'#cfe4ee', river:'#7fb3cf' },
 };
 const VIEWS = [
@@ -794,7 +809,8 @@ function drawLegend(){
   const items = vs.groups.filter(g => counts[g.id] || g.label);
   if (!items.length) return;
   const rowH = 26, sw = 18, pad = 12, maxRows = 14;
-  const box = legendG.append('rect').attr('rx', 6).attr('fill', S().legendBg).attr('fill-opacity', 0.92).attr('stroke', S().text).attr('stroke-opacity', 0.25);
+  const frame = vs.legendFrame !== false;
+  const box = legendG.append('rect').attr('rx', 6).attr('fill', S().legendBg).attr('fill-opacity', frame ? 0.92 : 0).attr('stroke', S().text).attr('stroke-opacity', frame ? 0.25 : 0);
   const texts = [];
   let head = 0, headW = 0;
   if (vs.legendTitle) {
@@ -804,7 +820,8 @@ function drawLegend(){
   items.forEach(g => {
     const label = (g.label || groupName(g)) + (vs.showCount ? ` (${counts[g.id] || 0})` : '');
     const it = legendG.append('g');
-    it.append('rect').attr('width', sw).attr('height', sw).attr('rx', 3).attr('fill', fillOfGroup(g)).attr('stroke', '#555').attr('stroke-width', 0.6);
+    if (vs.legendShape === 'circle') it.append('circle').attr('cx', sw / 2).attr('cy', sw / 2).attr('r', sw / 2).attr('fill', fillOfGroup(g)).attr('stroke', S().text).attr('stroke-opacity', 0.35).attr('stroke-width', 0.6);
+    else it.append('rect').attr('width', sw).attr('height', sw).attr('rx', 3).attr('fill', fillOfGroup(g)).attr('stroke', S().text).attr('stroke-opacity', 0.45).attr('stroke-width', 0.6);
     const t = it.append('text').attr('x', sw + 8).attr('y', sw / 2).attr('dy', '0.35em').attr('font-size', 15).attr('fill', S().text).text(label);
     texts.push({ it, w: t.node().getComputedTextLength() });
   });
@@ -1010,7 +1027,7 @@ function renderGroups(){
       <div class="sub2"><span class="small">Farbcode</span><input type="text" class="hex" value="${g.color}" spellcheck="false" style="width:96px;font-family:ui-monospace,monospace">
       ${window.EyeDropper ? '<button class="eye" title="Farbe irgendwo auf dem Bildschirm aufnehmen">🎯</button>' : ''}<span class="small grow"></span></div>
       <div class="sub2"><span class="small">Muster</span><select>${Object.entries(PATTERNS).map(([k, n]) => `<option value="${k}"${(g.pattern || 'none') === k ? ' selected' : ''}>${n}</option>`).join('')}</select>
-      <span class="small">2. Farbe</span><input type="color" value="${g.color2 || '#ffffff'}"></div>` : '');
+      <span class="small" ${(g.pattern || 'none') === 'none' ? 'hidden' : ''}>2. Farbe</span><input type="color" value="${g.color2 || '#ffffff'}" ${(g.pattern || 'none') === 'none' ? 'hidden' : ''}></div>` : '');
     row.addEventListener('click', e => { if (vs.active !== g.id) { vs.active = g.id; save(); renderGroups(); } });
     const [col, txt] = row.querySelectorAll('input');
     const col2 = row.querySelector('.sub2 input[type=color]');
@@ -1260,6 +1277,21 @@ function updatePresets(){
   box.appendChild(more); set(false);
 });
 
+// Einstellungen nur zeigen, wenn sie gerade wirken
+function updateVisibility(){
+  const vs = V(), st = S(), view = curView();
+  const cities = st.caps || st.regcaps || +st.bigCities > 0;
+  $('legendOpts').hidden = vs.legendPos === 'none';
+  $('cityNamesRow').hidden = !cities;
+  $('labelSizeRow').hidden = !cities && (vs.labelMode || 'none') === 'none';
+  $('ctxRow').hidden = view.id === 'world' || view.id === 'water' || (view.type === 'custom' && view.def.planar);
+}
+function syncStylePreset(){
+  const st = S();
+  const name = Object.keys(STYLE_PRESETS).find(n => Object.entries(STYLE_PRESETS[n]).every(([k, v]) => String(st[k]).toLowerCase() === String(v).toLowerCase()));
+  $('stylePreset').value = name || '';
+}
+
 // Optionen
 function bindOptions(){
   const vs = V(), st = S();
@@ -1274,7 +1306,9 @@ function bindOptions(){
   $('labelMode').value = vs.labelMode || 'none'; $('labelSize').value = st.labelSize;
   $('caps').checked = st.caps; $('regcaps').checked = st.regcaps; $('bigCities').value = String(st.bigCities || 0); $('cityNames').checked = st.cityNames;
   selAnno = -1; showEditor();
+  updateVisibility(); syncStylePreset();
   $('title').value = vs.title; $('legendPos').value = vs.legendPos; $('showCount').checked = vs.showCount;
+  $('legendShape').value = vs.legendShape || 'square'; $('legendFrame').checked = vs.legendFrame !== false;
   $('legendSize').value = vs.legendSize || '1'; $('legendTitle').value = vs.legendTitle || '';
   $('cLand').value = st.land; $('cBorder').value = st.border; $('cOcean').value = st.ocean; $('cContext').value = st.context;
   $('borderW').value = st.borderW; $('showContext').checked = st.showContext; $('showDots').checked = st.showDots; $('showGrat').checked = st.showGrat;
@@ -1292,21 +1326,23 @@ function switchView(id){ store.view = id; undo.length = redo.length = 0; save();
 $('viewSel').onchange = e => switchView(e.target.value);
 $('projSel').onchange = e => { S().projection = e.target.value; save(); resetZoom(true); render(); };
 $('title').addEventListener('input', e => { const had = !!V().title; V().title = e.target.value; save(); if (had !== !!V().title) render(); else { drawTitle(); drawLegend(); } });
-$('legendPos').onchange = e => { V().legendPos = e.target.value; save(); drawLegend(); };
+$('legendPos').onchange = e => { V().legendPos = e.target.value; save(); drawLegend(); updateVisibility(); };
 $('showCount').onchange = e => { V().showCount = e.target.checked; save(); drawLegend(); };
 $('legendSize').onchange = e => { V().legendSize = e.target.value; save(); drawLegend(); };
+$('legendShape').onchange = e => { V().legendShape = e.target.value; save(); drawLegend(); };
+$('legendFrame').onchange = e => { V().legendFrame = e.target.checked; save(); drawLegend(); };
 $('legendTitle').addEventListener('input', e => { V().legendTitle = e.target.value; save(); drawLegend(); });
 [['cLand','land'],['cBorder','border'],['cOcean','ocean'],['cContext','context']].forEach(([id, key]) =>
-  $(id).addEventListener('input', e => { S()[key] = e.target.value; save(); bg.attr('fill', S().ocean); paint(); }));
-$('borderW').addEventListener('input', e => { S().borderW = +e.target.value; save(); paint(); });
+  $(id).addEventListener('input', e => { S()[key] = e.target.value; save(); bg.attr('fill', S().ocean); paint(); syncStylePreset(); }));
+$('borderW').addEventListener('input', e => { S().borderW = +e.target.value; save(); paint(); syncStylePreset(); });
 [['showContext','showContext'],['showDots','showDots'],['showGrat','showGrat']].forEach(([id, key]) =>
   $(id).addEventListener('change', e => { S()[key] = e.target.checked; save(); render(); }));
-$('labelMode').onchange = e => { V().labelMode = e.target.value; save(); drawLabels(); };
+$('labelMode').onchange = e => { V().labelMode = e.target.value; save(); drawLabels(); updateVisibility(); };
 $('labelSize').addEventListener('input', e => { S().labelSize = +e.target.value; save(); drawLabels(); drawCities(); });
-['caps','regcaps','cityNames'].forEach(id => $(id).addEventListener('change', e => { S()[id] = e.target.checked; save(); drawCities(); }));
-$('bigCities').onchange = e => { S().bigCities = +e.target.value; save(); drawCities(); };
+['caps','regcaps','cityNames'].forEach(id => $(id).addEventListener('change', e => { S()[id] = e.target.checked; save(); drawCities(); updateVisibility(); }));
+$('bigCities').onchange = e => { S().bigCities = +e.target.value; save(); drawCities(); updateVisibility(); };
 Object.keys(STYLE_PRESETS).forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; $('stylePreset').appendChild(o); });
-$('stylePreset').onchange = e => { const n = e.target.value, p = STYLE_PRESETS[n]; if (!p) return; Object.assign(S(), p); save(); bindOptions(); render(); e.target.value = ''; hint('Kartenstil „' + n + '“ angewendet'); };
+$('stylePreset').onchange = e => { const n = e.target.value, p = STYLE_PRESETS[n]; if (!p) { syncStylePreset(); return; } Object.assign(S(), p); save(); bindOptions(); render(); hint('Kartenstil „' + n + '“ angewendet'); };
 $('resetStyle').onclick = () => {
   const proj = store.style.projection;
   if (isDark()) store.styleDark = { ...STYLE_PRESETS['Nacht'] };
@@ -1734,12 +1770,12 @@ $('kerem').onclick = ev => {
   btn.classList.add('party'); logo.classList.add('spin');
   setTimeout(() => { btn.classList.remove('party'); logo.classList.remove('spin'); }, 1500);
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const items = ['❤️', '🌍', '🗺️', '📍', '✨', '🧭', '❤️', '🌎'];
+  const flags = Object.values(FLAG);
   const n = calm ? 6 : 26;
   for (let i = 0; i < n; i++) {
     const p = document.createElement('span'); p.className = 'particle';
     if (i % 3 === 2) { p.textContent = ''; p.style.cssText = `width:9px;height:9px;border-radius:2px;background:${PALETTE[i % PALETTE.length]}`; }
-    else p.textContent = items[i % items.length];
+    else { p.textContent = flags[Math.floor(Math.random() * flags.length)]; p.style.fontSize = '22px'; }
     document.body.appendChild(p);
     const ang = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.1, dist = 90 + Math.random() * 120;
     const dx = Math.cos(ang) * dist, dy = Math.sin(ang) * dist, rot = (Math.random() - 0.5) * 540;
@@ -1749,6 +1785,17 @@ $('kerem').onclick = ev => {
   }
   hint('Danke, dass du Kartenwerk benutzt! 🌍');
 };
+
+// Logo antippen: groß in der Mitte drehen lassen
+$('logo').addEventListener('click', () => {
+  if ($('logoShow')) return;
+  const ov = document.createElement('div'); ov.id = 'logoShow';
+  ov.innerHTML = `<svg viewBox="0 0 64 64" aria-hidden="true">${LOGO}</svg>`;
+  const close = () => ov.remove();
+  ov.onclick = close; ov.addEventListener('animationend', e => { if (e.target === ov) close(); });
+  document.body.appendChild(ov);
+});
+$('logo').setAttribute('title', 'Kartenwerk');
 
 // ---------- Start ----------
 (async () => {

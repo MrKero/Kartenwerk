@@ -63,6 +63,10 @@ section > h2 + *, section > h2 + :is([hidden],[style*="display: none"]) + *{marg
 .list div:hover{background:#f5f7fb}
 .dot{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.15);flex:none}
 aside a{color:var(--acc)}
+.themes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.themes button{padding:4px;display:flex;flex-direction:column;gap:3px;align-items:stretch;font-size:11px;line-height:1.2;min-height:0}
+.themes button svg{width:100%;height:auto;display:block;border-radius:5px}
+.themes button.on{border-color:var(--acc);border-width:2px;padding:3px;background:var(--accsoft)}
 label.chk{display:flex;gap:8px;align-items:center;cursor:pointer;margin-top:8px}
 .lbl{font-size:12px;color:var(--muted);min-width:96px}
 #toolbar{display:flex;gap:6px;align-items:center;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
@@ -257,12 +261,14 @@ body.nosb aside{display:none}
   <section>
     <h2>Darstellung</h2>
     <div class="row"><span class="lbl">Kartenstil</span><select id="stylePreset" class="grow"><option value="">Eigene Farben</option></select></div>
+    <div class="themes" id="themeGrid"></div>
     <div class="row"><span class="lbl">Ungefärbt</span><input type="color" id="cLand"><span class="lbl">Grenzen</span><input type="color" id="cBorder"></div>
     <div class="row"><span class="lbl">Hintergrund</span><input type="color" id="cOcean"><span class="lbl">Nachbarn</span><input type="color" id="cContext"></div>
     <div class="row"><span class="lbl">Grenzstärke</span><input type="range" id="borderW" min="0" max="2.5" step="0.1" class="grow"></div>
     <label class="chk" id="ctxRow"><input type="checkbox" id="showContext"> Nachbarländer anzeigen</label>
     <label class="chk"><input type="checkbox" id="showDots"> Kleinstaaten als Punkte zeigen</label>
     <label class="chk"><input type="checkbox" id="showGrat"> Gradnetz anzeigen</label>
+    <label class="chk"><input type="checkbox" id="transparent"> Hintergrund beim Export transparent (PNG/SVG)</label>
     <div class="row"><button id="resetStyle" class="grow">Darstellung zurücksetzen</button></div>
   </section>
 
@@ -389,6 +395,17 @@ const STYLE_PRESETS = {
   'Nacht':         { land:'#3a4352', border:'#161b24', borderW:0.6, ocean:'#141922', context:'#252b36', text:'#e8ecf3', legendBg:'#1b212b', halo:'#141922', water:'#1c3550', river:'#4a8fd6' },
   'Kontrast dunkel': { land:'#d3dde0', border:'#262626', borderW:0.5, ocean:'#262626', context:'#5d676b', text:'#eef2f3', legendBg:'#262626', halo:'#262626', water:'#3a4651', river:'#8fc1e3' },
   'Pastell-Atlas': { land:'#f1efe6', border:'#ffffff', borderW:0.9, ocean:'#d5e8f0', context:'#e7e5dc', text:'#2d3a4a', legendBg:'#ffffff', halo:'#ffffff', water:'#cfe4ee', river:'#7fb3cf' },
+  'Schulatlas':    { land:'#f3ead2', border:'#9c8f73', borderW:0.5, ocean:'#bfe0f2', context:'#e9e2cf', text:'#2e3a46', legendBg:'#ffffff', halo:'#ffffff', water:'#bfe0f2', river:'#5aa0cf' },
+  'Minimal':       { land:'#f4f4f4', border:'#c8c8c8', borderW:0.4, ocean:'#ffffff', context:'#fafafa', text:'#222222', legendBg:'#ffffff', halo:'#ffffff', water:'#eef3f6', river:'#a9c1d1' },
+  'Schiefer':      { land:'#9aa6b2', border:'#e9edf1', borderW:0.6, ocean:'#e9edf1', context:'#c7cfd6', text:'#1f2933', legendBg:'#ffffff', halo:'#ffffff', water:'#d7dee5', river:'#7d8b99' },
+  'Ozean':         { land:'#ffffff', border:'#9ab7cf', borderW:0.6, ocean:'#2f6fa8', context:'#d8e4ee', text:'#ffffff', legendBg:'#0f2740', halo:'#2f6fa8', water:'#2f6fa8', river:'#8ec3ee' },
+  'Sepia':         { land:'#e9d9b8', border:'#8a6a43', borderW:0.5, ocean:'#f5ecd9', context:'#efe3c9', text:'#4b3621', legendBg:'#f5ecd9', halo:'#f5ecd9', water:'#dccfb2', river:'#9a7b52' },
+  'Wald':          { land:'#cfe3c4', border:'#ffffff', borderW:0.7, ocean:'#e8f1f2', context:'#e1ebdb', text:'#24402a', legendBg:'#ffffff', halo:'#ffffff', water:'#cfe4e8', river:'#6aa6b0' },
+  'Wüste':         { land:'#ecd3a5', border:'#fff7e6', borderW:0.7, ocean:'#f8f1e3', context:'#f1e4c8', text:'#5a4024', legendBg:'#fffaf0', halo:'#fffaf0', water:'#cfe0e0', river:'#7fa8a8' },
+  'Mitternacht':   { land:'#2d3d5c', border:'#55698f', borderW:0.5, ocean:'#111a2e', context:'#1d2840', text:'#e7ecf7', legendBg:'#152038', halo:'#111a2e', water:'#1a2b4d', river:'#5b84c4' },
+  'Blaupause':     { land:'#1f4f8f', border:'#9cc8ff', borderW:0.6, ocean:'#123a6e', context:'#1a467f', text:'#e6f1ff', legendBg:'#123a6e', halo:'#123a6e', water:'#0f325f', river:'#9cc8ff' },
+  'Satellit':      { land:'#556b4e', border:'#2c3a28', borderW:0.5, ocean:'#0e2a45', context:'#3b4a37', text:'#eef2e6', legendBg:'#0e2a45', halo:'#0e2a45', water:'#123a5e', river:'#4f8fc4' },
+  'Neon':          { land:'#141a2a', border:'#22d3ee', borderW:0.6, ocean:'#070a12', context:'#10151f', text:'#e0fbff', legendBg:'#0d1220', halo:'#070a12', water:'#0b1830', river:'#22d3ee' },
 };
 const VIEWS = [
   { id:'world', name:'Welt', type:'geo' },
@@ -518,10 +535,11 @@ const waterFC = {};
 // ---------- SVG-Grundgerüst ----------
 const svg = d3.select('#map').attr('viewBox', `0 0 ${W} ${H}`).attr('font-family', FONT);
 const defs = svg.append('defs');
-const bg = svg.append('rect').attr('width', W).attr('height', H);
+const bg = svg.append('rect').attr('class', 'bgrect').attr('width', W).attr('height', H);
 svg.append('defs').append('clipPath').attr('id', 'vbclip').append('rect').attr('width', W).attr('height', H);
 const zoomG = svg.append('g').attr('clip-path', 'url(#vbclip)').append('g');
 const mapG = zoomG.append('g');
+const outlineG = zoomG.append('g').attr('pointer-events', 'none');
 const hlPath = zoomG.append('path').attr('class', 'sel-ui').attr('fill', 'none').attr('pointer-events', 'none')
   .attr('stroke-width', 2).attr('stroke-linejoin', 'round').attr('vector-effect', 'non-scaling-stroke').style('display', 'none');
 const labelsG = zoomG.append('g').attr('pointer-events', 'none');
@@ -575,7 +593,7 @@ function worldProjection(top){
 function render(){
   const view = VIEWS.find(v => v.id === store.view) || VIEWS[0];
   current.view = view;
-  current.innerMesh = null; current.proj = null; current.path = null;
+  current.innerMesh = null; current.proj = null; current.path = null; current.topo = null;
   hideTip();
   mapG.selectAll('*').remove();
   const st = S(), vs = V();
@@ -595,6 +613,7 @@ function render(){
     if (st.showGrat) {
       mapG.append('path').attr('d', path(d3.geoGraticule10())).attr('fill','none').attr('stroke', st.text).attr('stroke-opacity', 0.14).attr('stroke-width',0.5).attr('vector-effect','non-scaling-stroke');
     }
+    current.topo = { t:D.world, o:D.world.objects.countries };
     worldAll.forEach(f => {
       const inter = isWorld || f.properties.r.includes(view.region);
       if (!inter && !st.showContext) return;
@@ -606,6 +625,7 @@ function render(){
   } else if (view.type === 'topo') {
     const topo = DETAIL[view.src];
     const fc = topojson.feature(topo, topo.objects.r);
+    current.topo = { t:topo, o:topo.objects.r };
     let proj;
     if (view.albers) proj = d3.geoAlbersUsa();
     else { const c = d3.geoCentroid(fc); proj = d3.geoAzimuthalEqualArea().rotate([-c[0], -c[1]]).clipAngle(150); }
@@ -702,9 +722,30 @@ function paintMap(){
   mapG.selectAll('.f.line').attr('fill', 'none')
     .attr('stroke', d => colorOf(d.k) || st.river).attr('stroke-width', d => colorOf(d.k) ? 2.6 : 1.1);
 }
+// Umrandung um ganze Gruppen (nur Außengrenze der Gruppe, innere Grenzen bleiben normal)
+function drawOutlines(){
+  outlineG.selectAll('*').remove();
+  const vs = V(), groups = vs.groups.filter(g => +g.outlineW > 0);
+  if (!groups.length) return;
+  groups.forEach(g => {
+    let d = null;
+    if (current.topo && current.path) {
+      const inG = geo => vs.assign[geo.properties && geo.properties.k] === g.id;
+      d = current.path(topojson.mesh(current.topo.t, current.topo.o, (a, b) => a === b ? inG(a) : inG(a) !== inG(b)));
+    }
+    const sel = outlineG.append('g');
+    if (d) sel.append('path').attr('d', d);
+    else current.features.filter(f => f.inter && vs.assign[f.k] === g.id && !f.line).forEach(f => sel.append('path').attr('d', f.d));
+    // abtrünnige Gebiete u. Ä. (nicht in der Topologie) einzeln umranden
+    if (d) current.features.filter(f => f.inter && vs.assign[f.k] === g.id && f.src && f.src.properties && f.src.properties.k && ['ABK','SOS','TRN'].includes(f.k)).forEach(f => sel.append('path').attr('d', f.d));
+    sel.selectAll('path').attr('fill', 'none').attr('stroke', g.outline || '#1d2330').attr('stroke-width', +g.outlineW)
+      .attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round').attr('vector-effect', 'non-scaling-stroke');
+  });
+}
 function paint(){
   updatePatterns();
   paintMap();
+  drawOutlines();
   mapG.selectAll('circle.dotc').attr('stroke', d => colorOf(d.k) ? '#333' : '#999').attr('stroke-width', 0.6)
     .attr('fill-opacity', d => colorOf(d.k) ? 1 : 0.5);
   drawTitle(); drawLegend(); renderGroups(); renderMcBox(); renderList(); updatePresets(); drawLabels(); drawAnnos();
@@ -820,8 +861,9 @@ function drawLegend(){
   items.forEach(g => {
     const label = (g.label || groupName(g)) + (vs.showCount ? ` (${counts[g.id] || 0})` : '');
     const it = legendG.append('g');
-    if (vs.legendShape === 'circle') it.append('circle').attr('cx', sw / 2).attr('cy', sw / 2).attr('r', sw / 2).attr('fill', fillOfGroup(g)).attr('stroke', S().text).attr('stroke-opacity', 0.35).attr('stroke-width', 0.6);
-    else it.append('rect').attr('width', sw).attr('height', sw).attr('rx', 3).attr('fill', fillOfGroup(g)).attr('stroke', S().text).attr('stroke-opacity', 0.45).attr('stroke-width', 0.6);
+    const ol = +g.outlineW > 0;
+    if (vs.legendShape === 'circle') it.append('circle').attr('cx', sw / 2).attr('cy', sw / 2).attr('r', sw / 2).attr('fill', fillOfGroup(g)).attr('stroke', ol ? g.outline : S().text).attr('stroke-opacity', ol ? 1 : 0.35).attr('stroke-width', ol ? 2 : 0.6);
+    else it.append('rect').attr('width', sw).attr('height', sw).attr('rx', 3).attr('fill', fillOfGroup(g)).attr('stroke', ol ? g.outline : S().text).attr('stroke-opacity', ol ? 1 : 0.45).attr('stroke-width', ol ? 2 : 0.6);
     const t = it.append('text').attr('x', sw + 8).attr('y', sw / 2).attr('dy', '0.35em').attr('font-size', 15).attr('fill', S().text).text(label);
     texts.push({ it, w: t.node().getComputedTextLength() });
   });
@@ -1027,7 +1069,9 @@ function renderGroups(){
       <div class="sub2"><span class="small">Farbcode</span><input type="text" class="hex" value="${g.color}" spellcheck="false" style="width:96px;font-family:ui-monospace,monospace">
       ${window.EyeDropper ? '<button class="eye" title="Farbe irgendwo auf dem Bildschirm aufnehmen">🎯</button>' : ''}<span class="small grow"></span></div>
       <div class="sub2"><span class="small">Muster</span><select>${Object.entries(PATTERNS).map(([k, n]) => `<option value="${k}"${(g.pattern || 'none') === k ? ' selected' : ''}>${n}</option>`).join('')}</select>
-      <span class="small" ${(g.pattern || 'none') === 'none' ? 'hidden' : ''}>2. Farbe</span><input type="color" value="${g.color2 || '#ffffff'}" ${(g.pattern || 'none') === 'none' ? 'hidden' : ''}></div>` : '');
+      <span class="small" ${(g.pattern || 'none') === 'none' ? 'hidden' : ''}>2. Farbe</span><input type="color" value="${g.color2 || '#ffffff'}" ${(g.pattern || 'none') === 'none' ? 'hidden' : ''}></div>
+      <div class="sub2"><span class="small">Umrandung</span><select class="olw">${[['0','keine'],['1','dünn'],['2','mittel'],['3.5','dick'],['5','sehr dick']].map(([v, n]) => `<option value="${v}"${String(+g.outlineW || 0) === v ? ' selected' : ''}>${n}</option>`).join('')}</select>
+      <span class="small" ${+g.outlineW > 0 ? '' : 'hidden'}>Farbe</span><input type="color" class="olc" value="${g.outline || '#1d2330'}" ${+g.outlineW > 0 ? '' : 'hidden'}></div>` : '');
     row.addEventListener('click', e => { if (vs.active !== g.id) { vs.active = g.id; save(); renderGroups(); } });
     const [col, txt] = row.querySelectorAll('input');
     const col2 = row.querySelector('.sub2 input[type=color]');
@@ -1049,6 +1093,11 @@ function renderGroups(){
     if (patSel) {
       patSel.addEventListener('click', e => e.stopPropagation());
       patSel.addEventListener('change', e => { snapshot(); g.pattern = e.target.value; afterChange(); });
+      const olw = row.querySelector('.olw'), olc = row.querySelector('.olc');
+      olw.addEventListener('click', e => e.stopPropagation());
+      olw.addEventListener('change', e => { snapshot(); g.outlineW = +e.target.value; if (!g.outline) g.outline = '#1d2330'; afterChange(); });
+      olc.addEventListener('focus', () => snapshot());
+      olc.addEventListener('input', e => { g.outline = e.target.value; save(); drawOutlines(); drawLegend(); });
       col2.addEventListener('focus', () => snapshot());
       col2.addEventListener('input', e => { g.color2 = e.target.value; save(); updatePatterns(); drawLegend(); });
     }
@@ -1290,6 +1339,7 @@ function syncStylePreset(){
   const st = S();
   const name = Object.keys(STYLE_PRESETS).find(n => Object.entries(STYLE_PRESETS[n]).every(([k, v]) => String(st[k]).toLowerCase() === String(v).toLowerCase()));
   $('stylePreset').value = name || '';
+  document.querySelectorAll('#themeGrid button').forEach(b => b.classList.toggle('on', b.dataset.n === name));
 }
 
 // Optionen
@@ -1311,7 +1361,7 @@ function bindOptions(){
   $('legendShape').value = vs.legendShape || 'square'; $('legendFrame').checked = vs.legendFrame !== false;
   $('legendSize').value = vs.legendSize || '1'; $('legendTitle').value = vs.legendTitle || '';
   $('cLand').value = st.land; $('cBorder').value = st.border; $('cOcean').value = st.ocean; $('cContext').value = st.context;
-  $('borderW').value = st.borderW; $('showContext').checked = st.showContext; $('showDots').checked = st.showDots; $('showGrat').checked = st.showGrat;
+  $('borderW').value = st.borderW; $('showContext').checked = st.showContext; $('showDots').checked = st.showDots; $('transparent').checked = !!st.transparent; $('showGrat').checked = st.showGrat;
 }
 function curView(){ return VIEWS.find(v => v.id === store.view) || VIEWS[0]; }
 function buildViewSel(){
@@ -1335,13 +1385,24 @@ $('legendTitle').addEventListener('input', e => { V().legendTitle = e.target.val
 [['cLand','land'],['cBorder','border'],['cOcean','ocean'],['cContext','context']].forEach(([id, key]) =>
   $(id).addEventListener('input', e => { S()[key] = e.target.value; save(); bg.attr('fill', S().ocean); paint(); syncStylePreset(); }));
 $('borderW').addEventListener('input', e => { S().borderW = +e.target.value; save(); paint(); syncStylePreset(); });
-[['showContext','showContext'],['showDots','showDots'],['showGrat','showGrat']].forEach(([id, key]) =>
+[['showContext','showContext'],['showDots','showDots'],['showGrat','showGrat'],['transparent','transparent']].forEach(([id, key]) =>
   $(id).addEventListener('change', e => { S()[key] = e.target.checked; save(); render(); }));
 $('labelMode').onchange = e => { V().labelMode = e.target.value; save(); drawLabels(); updateVisibility(); };
 $('labelSize').addEventListener('input', e => { S().labelSize = +e.target.value; save(); drawLabels(); drawCities(); });
 ['caps','regcaps','cityNames'].forEach(id => $(id).addEventListener('change', e => { S()[id] = e.target.checked; save(); drawCities(); updateVisibility(); }));
 $('bigCities').onchange = e => { S().bigCities = +e.target.value; save(); drawCities(); updateVisibility(); };
 Object.keys(STYLE_PRESETS).forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; $('stylePreset').appendChild(o); });
+// Vorschau-Kacheln für alle Kartenstile
+Object.entries(STYLE_PRESETS).forEach(([n, p]) => {
+  const b = document.createElement('button'); b.dataset.n = n; b.title = n;
+  b.innerHTML = `<svg viewBox="0 0 60 34"><rect width="60" height="34" fill="${p.ocean}"/>
+    <path d="M4 12Q12 5 22 8T38 9Q48 5 55 13Q54 24 43 27Q31 31 20 27Q7 25 4 12Z" fill="${p.land}" stroke="${p.border}" stroke-width="${Math.max(0.6, p.borderW * 1.2)}"/>
+    <path d="M22 8Q25 18 20 27M38 9Q36 19 43 27" fill="none" stroke="${p.border}" stroke-width="${Math.max(0.6, p.borderW * 1.2)}"/>
+    <path d="M22 8Q30 6 38 9Q36 19 43 27Q31 31 20 27Q25 18 22 8Z" fill="#e6194b" stroke="${p.border}" stroke-width="${Math.max(0.6, p.borderW * 1.2)}"/>
+    <circle cx="51" cy="5" r="2.2" fill="${p.context}" stroke="${p.border}" stroke-width=".5"/></svg><span>${n}</span>`;
+  b.onclick = () => { $('stylePreset').value = n; $('stylePreset').dispatchEvent(new Event('change')); };
+  $('themeGrid').appendChild(b);
+});
 $('stylePreset').onchange = e => { const n = e.target.value, p = STYLE_PRESETS[n]; if (!p) { syncStylePreset(); return; } Object.assign(S(), p); save(); bindOptions(); render(); hint('Kartenstil „' + n + '“ angewendet'); };
 $('resetStyle').onclick = () => {
   const proj = store.style.projection;
@@ -1390,6 +1451,7 @@ function svgString(){
   // Kleinstaaten-Punkte: Größe an Zoom angepasst lassen; Hover-Klassen entfernen
   node.querySelectorAll('.f').forEach(n => n.removeAttribute('class'));
   node.querySelectorAll('.sel-ui').forEach(n => n.remove());
+  if (S().transparent) { const b = node.querySelector('.bgrect'); if (b) b.setAttribute('fill', 'none'); }
   const wm = node.querySelector('.wm'); if (wm) wm.setAttribute('visibility', 'visible');
   return '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(node);
 }

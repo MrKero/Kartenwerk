@@ -1,5 +1,5 @@
 // Kartenwerk – Offline-Cache. Bei neuen Versionen VERSION erhöhen.
-const VERSION = 'kartenwerk-v15';
+const VERSION = 'kartenwerk-v17';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));

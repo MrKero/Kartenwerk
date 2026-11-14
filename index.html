@@ -246,6 +246,8 @@ body.nosb aside{display:none}
     <h2>Beschriftungen &amp; Orte</h2>
     <div class="row"><span class="lbl">Namen</span>
       <select id="labelMode" class="grow"><option value="none">keine</option><option value="colored">nur gefärbte Gebiete</option><option value="all">alle (soweit Platz)</option><option value="manual">nur einzeln gewählte</option></select></div>
+    <div class="row" id="labelFormRow"><span class="lbl">Schreibweise</span>
+      <select id="labelForm" class="grow"><option value="full">ausgeschrieben</option><option value="short">abgekürzt (z. B. DE, BY, CA, 34)</option></select></div>
     <div class="row" id="labelSizeRow"><span class="lbl">Schriftgröße</span><input type="range" id="labelSize" min="7" max="22" step="1" class="grow"></div>
     <label class="chk"><input type="checkbox" id="caps"> Hauptstädte</label>
     <label class="chk"><input type="checkbox" id="regcaps"> Regionshauptstädte (Bundesländer, Provinzen …)</label>
@@ -267,6 +269,10 @@ body.nosb aside{display:none}
     <div class="row"><span class="lbl">Ungefärbt</span><input type="color" id="cLand"><span class="lbl">Grenzen</span><input type="color" id="cBorder"></div>
     <div class="row"><span class="lbl">Hintergrund</span><input type="color" id="cOcean"><span class="lbl">Nachbarn</span><input type="color" id="cContext"></div>
     <div class="row"><span class="lbl">Grenzstärke</span><input type="range" id="borderW" min="0" max="2.5" step="0.1" class="grow"></div>
+    <div class="stack" id="meshOpts">
+      <div class="row"><span class="lbl">Landesgrenzen</span><input type="color" id="meshColor"><input type="range" id="meshW" min="0" max="4" step="0.25" class="grow" title="Stärke der Bundesland-/Staatengrenzen"></div>
+      <div class="small">Bei Landkreisen bzw. Counties: Grenzstärke auf 0 blendet die Kreisgrenzen aus, die Landesgrenzen bleiben sichtbar.</div>
+    </div>
     <label class="chk" id="ctxRow"><input type="checkbox" id="showContext"> Nachbarländer anzeigen</label>
     <label class="chk"><input type="checkbox" id="showDots"> Kleinstaaten als Punkte zeigen</label>
     <label class="chk"><input type="checkbox" id="showGrat"> Gradnetz anzeigen</label>
@@ -501,7 +507,7 @@ function save(){ clearTimeout(saveTimer); saveTimer = setTimeout(() => { try { l
 function vKey(){ return store.view; }
 function V(){ const k = vKey(); return store.views[k] || (store.views[k] = freshView()); }
 // Farben gibt es getrennt für hell und dunkel: im Dunkelmodus gelten store.styleDark-Farben
-const COLOR_KEYS = new Set(['land','border','borderW','ocean','context','text','legendBg','halo','water','river']);
+const COLOR_KEYS = new Set(['land','border','borderW','ocean','context','text','legendBg','halo','water','river','meshColor','meshW']);
 const isDark = () => document.documentElement.dataset.theme === 'dark';
 let darkProxy = null, darkProxyFor = null;
 function S(){
@@ -617,6 +623,7 @@ function render(){
   const h = fitBottom != null ? Math.round(Math.min(1000, Math.max(440, fitBottom + 4))) : 760;
   setCanvasHeight(h);
   renderInner();
+  updateVisibility();
 }
 function renderInner(){
   const view = VIEWS.find(v => v.id === store.view) || VIEWS[0];
@@ -744,11 +751,13 @@ function paintMap(){
   // mit sichtbarem Bildrand: Fläche außerhalb des Bildes wie die Seite einfärben, damit die Grenze klar ist
   svg.style('background', st.showFrame ? 'var(--bg)' : st.ocean);
   frameRect.style('display', st.showFrame ? null : 'none').attr('stroke', st.text).attr('stroke-opacity', 0.55).raise();
-  mapG.selectAll('path.mesh').attr('stroke', st.border).attr('stroke-width', Math.max(1.2, st.borderW * 2.6));
+  mapG.selectAll('path.mesh').attr('stroke', st.meshColor || st.border).attr('stroke-width', st.meshW != null && st.meshW !== '' ? +st.meshW : Math.max(1.2, st.borderW * 2.6));
+  // Grenzstärke 0: Kontur in Flächenfarbe, damit keine hellen Haarlinien zwischen den Gebieten durchscheinen
+  const fillFn = d => d.inter ? (fillOf(d.k) || (d.base ? st[d.base] : st.land)) : st.context, noB = !(+st.borderW > 0);
   mapG.selectAll('.f:not(.line)')
-    .attr('fill', d => d.inter ? (fillOf(d.k) || (d.base ? st[d.base] : st.land)) : st.context)
-    .attr('stroke', st.border)
-    .attr('stroke-width', st.borderW);
+    .attr('fill', fillFn)
+    .attr('stroke', d => noB ? fillFn(d) : st.border)
+    .attr('stroke-width', noB ? 0.7 : st.borderW);
   mapG.selectAll('.f.line').attr('fill', 'none')
     .attr('stroke', d => colorOf(d.k) || st.river).attr('stroke-width', d => colorOf(d.k) ? 2.6 : 1.1);
 }
@@ -949,8 +958,29 @@ function drawLabels(){
     labelsG.append('text').attr('x', p[0]).attr('y', p[1]).attr('dy', '0.35em').attr('text-anchor', 'middle')
       .attr('font-size', fs).attr('font-weight', 600).attr('fill', st.text)
       .attr('stroke', st.halo).attr('stroke-width', fs * 0.28).attr('stroke-linejoin', 'round').attr('paint-order', 'stroke')
-      .text(d.n.replace(/ \((Landkreis|Kreis|Kreisfreie Stadt|Stadtkreis)\)$/, ''));
+      .text(labelText(d));
   });
+}
+// Abkürzungen: Länder ISO-Code, US-Bundesstaaten Postkürzel, Bundesländer, türkische Provinzen Kfz-Nummer
+const US_ABBR = {'01':'AL','02':'AK','04':'AZ','05':'AR','06':'CA','08':'CO','09':'CT','10':'DE','11':'DC','12':'FL','13':'GA','15':'HI','16':'ID','17':'IL','18':'IN','19':'IA','20':'KS','21':'KY','22':'LA','23':'ME','24':'MD','25':'MA','26':'MI','27':'MN','28':'MS','29':'MO','30':'MT','31':'NE','32':'NV','33':'NH','34':'NJ','35':'NM','36':'NY','37':'NC','38':'ND','39':'OH','40':'OK','41':'OR','42':'PA','44':'RI','45':'SC','46':'SD','47':'TN','48':'TX','49':'UT','50':'VT','51':'VA','53':'WA','54':'WV','55':'WI','56':'WY','60':'AS','66':'GU','69':'MP','72':'PR','78':'VI'};
+const DE_ABBR = {'01':'SH','02':'HH','03':'NI','04':'HB','05':'NW','06':'HE','07':'RP','08':'BW','09':'BY','10':'SL','11':'BE','12':'BB','13':'MV','14':'SN','15':'ST','16':'TH'};
+let TR_PLATE = null;
+const TR_NAMES = 'Adana Adıyaman Afyonkarahisar Ağrı Amasya Ankara Antalya Artvin Aydın Balıkesir Bilecik Bingöl Bitlis Bolu Burdur Bursa Çanakkale Çankırı Çorum Denizli Diyarbakır Edirne Elazığ Erzincan Erzurum Eskişehir Gaziantep Giresun Gümüşhane Hakkâri Hatay Isparta Mersin Istanbul Izmir Kars Kastamonu Kayseri Kırklareli Kırşehir Kocaeli Konya Kütahya Malatya Manisa Kahramanmaraş Mardin Muğla Muş Nevşehir Niğde Ordu Rize Sakarya Samsun Siirt Sinop Sivas Tekirdağ Tokat Trabzon Tunceli Şanlıurfa Uşak Van Yozgat Zonguldak Aksaray Bayburt Karaman Kırıkkale Batman Şırnak Bartın Ardahan Iğdır Yalova Karabük Kilis Osmaniye Düzce';
+function shortName(d){
+  const k = d.k, p = (d.src && d.src.properties) || {};
+  if (/^US\d\d$/.test(k)) return US_ABBR[k.slice(2)] || d.n;
+  if (/^L\d\d$/.test(k)) return DE_ABBR[k.slice(1)] || d.n;
+  if (current.view && current.view.id === 'turkei') {
+    if (!TR_PLATE) { TR_PLATE = {}; TR_NAMES.split(' ').forEach((n, i) => TR_PLATE[mcNorm(n)] = String(i + 1).padStart(2, '0')); }
+    return TR_PLATE[mcNorm(d.n)] || d.n;
+  }
+  if (p.f) return p.f.toUpperCase();
+  if (/^[A-Z]{3}$/.test(k)) return k;
+  return null;
+}
+function labelText(d){
+  const full = d.n.replace(/ \((Landkreis|Kreis|Kreisfreie Stadt|Stadtkreis)\)$/, '');
+  return V().labelForm === 'short' ? (shortName(d) || full) : full;
 }
 function toggleLabel(d){
   const vs = V(); snapshot();
@@ -1363,6 +1393,8 @@ function updateVisibility(){
   $('legendOpts').hidden = vs.legendPos === 'none';
   $('cityNamesRow').hidden = !cities;
   $('labelSizeRow').hidden = !cities && (vs.labelMode || 'none') === 'none';
+  $('labelFormRow').hidden = (vs.labelMode || 'none') === 'none';
+  $('meshOpts').hidden = !current.innerMesh;
   $('ctxRow').hidden = view.id === 'world' || view.id === 'water' || (view.type === 'custom' && view.def.planar);
 }
 function syncStylePreset(){
@@ -1383,7 +1415,8 @@ function bindOptions(){
   $('presetSec').style.display = countryMap ? '' : 'none';
   $('fArea').value = ''; $('fStatus').value = '';
   $('palSet').value = PALETTES[st.palette] ? st.palette : 'Standard';
-  $('labelMode').value = vs.labelMode || 'none'; $('labelSize').value = st.labelSize;
+  $('labelMode').value = vs.labelMode || 'none'; $('labelSize').value = st.labelSize; $('labelForm').value = vs.labelForm || 'full';
+  $('meshColor').value = st.meshColor || st.border; $('meshW').value = st.meshW != null && st.meshW !== '' ? st.meshW : Math.max(1.2, st.borderW * 2.6);
   $('caps').checked = st.caps; $('regcaps').checked = st.regcaps; $('bigCities').value = String(st.bigCities || 0); $('cityNames').checked = st.cityNames;
   selAnno = -1; showEditor();
   updateVisibility(); syncStylePreset();
@@ -1418,6 +1451,9 @@ $('borderW').addEventListener('input', e => { S().borderW = +e.target.value; sav
 [['showContext','showContext'],['showDots','showDots'],['showGrat','showGrat'],['transparent','transparent'],['showFrame','showFrame']].forEach(([id, key]) =>
   $(id).addEventListener('change', e => { S()[key] = e.target.checked; save(); render(); }));
 $('labelMode').onchange = e => { V().labelMode = e.target.value; save(); drawLabels(); updateVisibility(); };
+$('labelForm').onchange = e => { V().labelForm = e.target.value; save(); drawLabels(); };
+$('meshColor').addEventListener('input', e => { S().meshColor = e.target.value; save(); paintMap(); syncStylePreset(); });
+$('meshW').addEventListener('input', e => { S().meshW = +e.target.value; save(); paintMap(); syncStylePreset(); });
 $('labelSize').addEventListener('input', e => { S().labelSize = +e.target.value; save(); drawLabels(); drawCities(); });
 ['caps','regcaps','cityNames'].forEach(id => $(id).addEventListener('change', e => { S()[id] = e.target.checked; save(); drawCities(); updateVisibility(); }));
 $('bigCities').onchange = e => { S().bigCities = +e.target.value; save(); drawCities(); updateVisibility(); };
@@ -1436,7 +1472,7 @@ Object.entries(STYLE_PRESETS).forEach(([n, p]) => {
   b.onclick = () => { $('stylePreset').value = n; $('stylePreset').dispatchEvent(new Event('change')); };
   $('themeGrid').appendChild(b);
 });
-$('stylePreset').onchange = e => { const n = e.target.value, p = STYLE_PRESETS[n]; if (!p) { syncStylePreset(); return; } Object.assign(S(), p); save(); bindOptions(); render(); hint('Kartenstil „' + n + '“ angewendet'); };
+$('stylePreset').onchange = e => { const n = e.target.value, p = STYLE_PRESETS[n]; if (!p) { syncStylePreset(); return; } Object.assign(S(), p, { meshColor:'', meshW:'' }); save(); bindOptions(); render(); hint('Kartenstil „' + n + '“ angewendet'); };
 $('resetStyle').onclick = () => {
   const proj = store.style.projection;
   if (isDark()) store.styleDark = { ...STYLE_PRESETS['Nacht'] };
